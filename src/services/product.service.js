@@ -1,27 +1,46 @@
-import {db} from "../firebase/config.js"
-import {ProductModel} from "../models/product.model.js"
-import {collection, getDoc, getDocs, deleteDoc, updateDoc, addDoc} from "firebase/firestore"
+//_____________________________________________________________________________________________
+// Importacion de Modulos
 
-const collectionName = "productos"
+    // BASE DE DATOS
+    import {collection, 
+            getDoc, 
+            getDocs, 
+            deleteDoc, 
+            updateDoc, 
+            addDoc,
+            doc
+        } from "firebase/firestore" 
+    import {db} from "../firebase/config.js"
+  
+    // MODELO
+    import {ProductModel} from "../models/product.model.js"
+//_____________________________________________________________________________________________
 
-export const getAllProducts = async () => {
+// NOMBRE DE LA COLECCION DE DATOS (TABLA)
+   const collectionName = "products"
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+// INICIO DE CRUD
+
+// OBTENER TODOS LOS PRODUCTOS
+export const getProducts = async () => {
     const productsCol = collection(db, collectionName)
     const snashot = await getDocs(productsCol)
-
     if (snashot.empty) return []
-
     return snashot.docs.map( doc => new ProductModel({id: doc.id, ...doc.data()}))
 }
 
-export const getproductById = async () => {
-    const docRef = collection(db, collectionName, id)
+// OBTENER UN PRODUCTO
+export const getProduct = async (id) => {
+    const docRef = doc(db, collectionName, id)
     const docSnap = await getDoc(docRef)
 
-    if (!docSnap.exists) return null
+    if (!docSnap.exists()) return null
 
-    return new ProductModel({id: doc.id, ...doc.data()})
+    return new ProductModel({id: docSnap.id, ...docSnap.data()})
 }
 
+// CREAR UN PRODUCTO
 export const createProduct = async (data) => {
 
     if (!data.descripcion || !data.precio ) {
@@ -40,25 +59,44 @@ export const createProduct = async (data) => {
     return new ProductModel({id: docRef.id, ...data})
 }
 
+// ELIMINAR UN PRODUCTO
 export const deleteProduct = async (id) => {
-    const docRef = collection(db, collectionName, id)
+    const docRef = doc(db, collectionName, id)
     const docSnap = await getDoc(docRef)
 
-    if (!docSnap.exists) return null
+    if (!docSnap.exists()) return null
+    
+    const deleted = docSnap.data();
 
     await deleteDoc(docRef)
 
-    return true
+    return deleted
 }
 
+// ACTUALIZAR UN PRODUCTO
 export const updateProduct = async (id, data) => {
-    const docRef = collection(db, collectionName, id)
+
+    const docRef = doc(db, collectionName, id)
 
     const docSnap = await getDoc(docRef)
 
-    if (!docSnap.exists) return null
+    if (!docSnap.exists()) return null
 
-    await updateDoc(docRef,data)
+    const old = docSnap.data();
 
-    return {id, ...docSnap.data(), ...data}
+    const updated = {
+        nombre: data.nombre || old.nombre,
+        precio: Number(data.precio) || old.precio,
+        stock: Number(data.stock || 0) || old.stock,
+        descripcion: data.descripcion || old.descripcion,
+        categoria: data.categoria || old.categoria
+    };
+
+    await updateDoc(docRef,updated)
+
+    return {id, ...updated}
 }
+
+// FIN CRUD
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
