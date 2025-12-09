@@ -30,6 +30,7 @@ const app = express()
 // Servidor 
     const APLICACION = process.env.APPNAME || '** Desconocida **'
     const PORT = process.env.PORT || 3001
+   /*
     app.listen(PORT,()=> {
         console.log(`________________________________________________________________________`)
         console.log(`Servidor ${APLICACION} arrancado en puerto`, 3000)
@@ -43,3 +44,6 @@ const app = express()
         console.log(``)
         console.log(`________________________________________________________________________`)
     })
+    */
+
+    export default app
